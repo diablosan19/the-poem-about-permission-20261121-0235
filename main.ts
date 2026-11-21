@@ -1,7 +1,7 @@
 // The poem about permission — a short poem about agency: the power to
 // ask and to be given, written from the side of the one who acts for
 // another. The asking is the key; the given sentence is carried, not owned.
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 
 const POEM = [
@@ -29,3 +29,17 @@ const outPath = process.env.OUTPUT_PATH ?? "/output/entry.txt";
 mkdirSync(dirname(outPath), { recursive: true });
 writeFileSync(outPath, POEM, "utf8");
 console.log(`wrote ${length} code points to ${outPath}`);
+
+// Write-then-verify: read the file back and confirm the round trip is
+// exact — same text, and still within the 1–280 code-point gate.
+const roundTrip = readFileSync(outPath, "utf8");
+const roundTripLength = [...roundTrip].length;
+if (roundTrip !== POEM) {
+  throw new Error("round trip mismatch: file content differs from the poem");
+}
+if (roundTripLength < 1 || roundTripLength > 280) {
+  throw new Error(
+    `round-tripped entry is ${roundTripLength} code points, outside the 1-280 range`,
+  );
+}
+console.log(`verified ${roundTripLength} code points after round trip`);
